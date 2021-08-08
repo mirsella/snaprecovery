@@ -12,26 +12,13 @@ NOTICE="\033[93;1m[!]\033[0m"
 
 usage(){
 cat <<EOF
-usage: snaprecovery [-n, --no-merge] [SERIAL]
-
-The serial number of the device can be found by running 'adb devices'.
-It is not necessary if only one device is connected in adb devices.
+usage: snaprecovery [-n, --no-merge]
 
 Options:
     -n, --no-merge    don't merge videos with their respective overlays
 EOF
     exit 1
 }
-
-# Number of devices connected to computer through USB
-DEVICESCOUNT="$(adb devices | awk 'NF && NR>1' | wc -l)"
-
-# If only one device is connected, use its serial, otherwise the user is required to specify a serial.
-if [ $DEVICESCOUNT -eq 1 ]; then
-    SERIAL="$(adb devices | awk 'NF && FNR==2{print $1}')"
-else
-    [ $# -eq 0 ] || [ "$1" = "" ] && usage
-fi
 
 # Determines whether or not to merge videos with overlays. Must be unset or null/empty to disable.
 MERGE=yes
@@ -40,41 +27,23 @@ while [ "$1" ] ; do
     case $1 in
         -h|--help) usage ;;
         -n|--no-merge) unset MERGE ;;
-        *) SERIAL="$1" ;;
     esac
     shift
 done
 
-# Check if the device is authorized
-DEVICESTATUS="$(adb devices | grep $SERIAL | cut -f2)"
-if [ "$DEVICESTATUS" = 'unauthorized' ]; then
-  printf "%b device '%s' is not authorized.\n" "$BAD" "$SERIAL"
-  printf "%b your computer is not authorized by your phone. check your phone maybe there is a pop up asking for authorization.\n" "$NOTICE" 
-  exit 1
-fi
-
 SNAPS_DIRECTORY="snaps_$SERIAL"
 
-for DEPENDENCY in adb awk ${MERGE:+ffmpeg stat touch}; do
+for DEPENDENCY in awk ${MERGE:+ffmpeg stat touch}; do
     if ! command -v "$DEPENDENCY" >/dev/null 2>&1; then
         printf "%b Could not find '%s', is it installed?\n" "$BAD" "$DEPENDENCY"
         exit 1
     fi
 done
 
-if ! PRODUCT_MODEL=$(adb -s "$SERIAL" shell getprop ro.product.model 2> /dev/null);then
-    printf "%b Looks like '%s' is an invalid device\n" "$BAD" "$SERIAL"
-    exit 1
-fi
 
-printf "%b Target device: %s (%s)\n" "$INFO" "$SERIAL" "$PRODUCT_MODEL"
-
-# Restart adb as root. Root access is needed in order to access the files
-adb -s "$SERIAL" root > /dev/null 2>&1
-
-if ! adb -s "$SERIAL" pull -a /data/user/0/com.snapchat.android/files/file_manager/chat_snap/ .tmp > /dev/null 2>&1; then
-    printf "%b %b\n" "$BAD" "This device is not rooted!"
-    exit 1
+if ! cp /data/user/0/com.snapchat.android/files/file_manager/chat_snap/ .tmp; then
+  printf "%b %b\n" "$BAD" "Error. this script probably doesn't have acess to snapchat's storage."
+  exit 1
 fi
 
 mkdir -p "$SNAPS_DIRECTORY"
