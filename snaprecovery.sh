@@ -31,7 +31,7 @@ while [ "$1" ] ; do
     shift
 done
 
-SNAPS_DIRECTORY="snaps_$SERIAL"
+SNAPS_DIRECTORY="snaps_output"
 
 for DEPENDENCY in awk ${MERGE:+ffmpeg stat touch}; do
     if ! command -v "$DEPENDENCY" >/dev/null 2>&1; then
