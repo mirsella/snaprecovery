@@ -41,7 +41,9 @@ for DEPENDENCY in awk ${MERGE:+ffmpeg stat touch}; do
 done
 
 
-if ! cp /data/user/0/com.snapchat.android/files/file_manager/chat_snap/ .tmp; then
+if su -c cp -rp /data/user/0/com.snapchat.android/files/file_manager/chat_snap/ .tmp; then
+  su -c chown -R $USER:$USER .tmp
+else
   printf "%b %b\n" "$BAD" "Error. this script probably doesn't have acess to snapchat's storage."
   exit 1
 fi
