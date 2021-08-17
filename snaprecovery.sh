@@ -42,7 +42,8 @@ for DEPENDENCY in awk ${MERGE:+ffmpeg stat touch}; do
 done
 
 SNAPS_DIRECTORY="snaps-$(date +%d-%m-%y)"
-cd /storage/snaprecovery || notif "snaprecovery can't cd /storage"
+cd /storage/snaprecovery || { notif "snaprecovery can't cd /storage"; exit 1; }
+[ -d .tmp ] || { notif ".tmp doesn't exists"; exit 1; }
 
 mkdir -p "$SNAPS_DIRECTORY"
 TOTAL_FILES=$(find .tmp | wc -l)
@@ -107,4 +108,3 @@ printf "%b The recovered snaps can be found in '%s'\n" "$NOTICE" "$SNAPS_DIRECTO
 
 mv .tmp/* "$SNAPS_DIRECTORY"
 rm -rf .tmp/
-
