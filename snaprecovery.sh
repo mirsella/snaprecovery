@@ -42,7 +42,7 @@ done
 
 
 if su -c cp -rp /data/user/0/com.snapchat.android/files/file_manager/chat_snap/ .tmp; then
-  su -c chown -R $USER:$USER .tmp
+  su -c chown -R "$USER":"$USER" .tmp
   # via ssh it work without this but directly from termux it fail so i keep it even if it's less secure
   su -c chmod -R 777 .tmp 
 else
